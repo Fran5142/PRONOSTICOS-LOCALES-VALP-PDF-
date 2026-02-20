@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generador de Informes - SERVIMET Puerto Montt</title>
+    
+    <style>
+        /* =========================================
+           1. ESTILOS BASE Y FONDO
+           ========================================= */
+        body { 
+            font-family: 'Segoe UI', Helvetica, Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #000814; 
+            background-image: linear-gradient(180deg, #001d3d 0%, #000814 100%);
+            background-attachment: fixed;
+            color: #e0e0e0; 
+        }
+
+        /* =========================================
+           2. PANEL DE CONTROL (INTERFAZ)
+           ========================================= */
+        .controles {
+            background: rgba(0, 29, 61, 0.8);
+            padding: 30px 20px 40px 20px;
+            width: 100%;
+            box-sizing: border-box;
+            border-bottom: 4px solid #003566;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            position: relative; 
+        }
+
+        .cabecera-contenedor {
+            display: flex;
+            align-items: center;
+            justify-content: center; 
+            max-width: 1200px;
+            margin: 0 auto 30px auto;
+            min-height: 180px; 
+        }
+
+        .logo-pagina {
+            position: absolute; 
+            left: 100px;          
+            top: 40px;           
+            height: 350px;       
+            width: auto;
+            filter: drop-shadow(0 0 15px rgba(76, 201, 240, 0.4));
+        }
+
+        .texto-cabecera { text-align: center; }
+
+        .titulo-web {
+            font-size: 32px;
+            font-weight: 700;
+            margin: 0;
+            color: #ffffff;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+        }
+
+        .subtitulo-web {
+            font-size: 15px;
+            color: #4cc9f0;
+            margin: 8px 0 0 0;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            font-weight: 400;
+        }
+
+        /* Formulario y Botones */
+        #nombreArchivo {
+            padding: 12px 20px;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 4px;
+            border: 1px solid #4cc9f0;
+            margin-bottom: 25px;
+            font-size: 16px;
+            background: #f8f9fa;
+            color: #001d3d;
+            font-weight: bold;
+            text-align: center;
+            display: block;
+            margin: 0 auto 25px auto;
+        }
+
+        .ejemplos-contenedor { margin: 0 auto 30px auto; max-width: 1000px; text-align: center; }
+        .ejemplos-label { font-weight: 600; color: #a3bac3; display: block; margin-bottom: 15px; font-size: 13px; }
+        
+        .boton-ejemplo { 
+            background: transparent; 
+            padding: 8px 16px; 
+            border-radius: 4px; 
+            border: 1px solid #4cc9f0; 
+            color: #4cc9f0; 
+            margin: 4px; 
+            cursor: pointer; 
+            display: inline-block; 
+            font-size: 12px; 
+            transition: 0.2s; 
+        }
+        .boton-ejemplo:hover { background: #4cc9f0; color: #001d3d; }
+
+        #textoInforme { 
+            width: 90%; 
+            max-width: 1000px; 
+            height: 200px; 
+            margin: 0 auto 30px auto; 
+            padding: 15px; 
+            font-family: 'Consolas', monospace; 
+            font-size: 14px; 
+            border-radius: 4px; 
+            display: block; 
+            box-sizing: border-box; 
+            border: 1px solid #ccc; 
+            background: #ffffff; 
+            color: #212529; 
+        }
+
+        .contenedor-acciones { text-align: center; }
+        
+        .btn-accion { 
+            margin: 5px 10px; 
+            padding: 14px 35px; 
+            font-weight: bold; 
+            border-radius: 4px; 
+            cursor: pointer; 
+            border: none; 
+            transition: 0.3s; 
+            text-transform: uppercase; 
+            letter-spacing: 1px; 
+            font-size: 13px; 
+        }
+        .btn-principal { background: #4cc9f0; color: #001d3d; }
+        .btn-carta { background: #d00000; color: #fff; }
+        .btn-oficio { background: #008000; color: #fff; }
+        .btn-accion:hover { opacity: 0.85; transform: translateY(-1px); }
+
+        .autor-web { 
+            font-size: 18px; 
+            color: #4cc9f0; 
+            margin-top: 40px; 
+            font-weight: 700; 
+            font-style: italic; 
+            text-align: center;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* =========================================
+           3. FORMATO HOJA (VISTA PREVIA / PDF)
+           ========================================= */
+        #vistaPrevia { 
+            width: 215.9mm; 
+            min-height: 279.4mm; 
+            background: #ffffff; 
+            color: #000000; 
+            margin: 50px auto; 
+            padding: 10mm 20mm; 
+            font-family: Arial, sans-serif; 
+            font-size: 10pt; 
+            line-height: 1.2; 
+            position: relative; 
+            box-sizing: border-box; 
+            display: flex; 
+            flex-direction: column; 
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5); 
+        }
+
+        .header-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .header-text { text-align: center; font-size: 8pt; line-height: 1.3; color: #FF0000; }
+        .armada-bold { font-weight: bold; display: block; }
+        .header-normal { font-weight: normal; display: block; }
+        
+        .logo-anchor { width: 120px; text-align: right; }
+        .logo-estilizado { height: 130px; width: auto; display: inline-block; }
+        
+        .titulo-principal { 
+            text-align: center; 
+            font-weight: bold; 
+            text-decoration: underline; 
+            display: block; 
+            text-transform: uppercase; 
+            line-height: 1.1; 
+            margin-bottom: 5px; 
+            font-size: 11pt; 
+        }
+
+        .negrita { font-weight: bold; }
+        .seccion-titulo { font-weight: bold; display: block; margin-top: 0px; }
+        .contenido-texto { display: block; margin-bottom: 5px; text-align: justify; }
+        .contenedor-temp { display: grid; grid-template-columns: 290px 10px auto; font-weight: bold; line-height: 1.3; font-size: 11pt; }
+        .espacio-arriba { margin-top: 15px; display: block; }
+        
+        .footer-informe { margin-top: auto; text-align: right; font-size: 8.5pt; padding-top: 20px; }
+        .footer-bold { font-weight: bold; }
+        .footer-link-azul { color: #0000FF; text-decoration: underline; }
+    </style>
+</head>
+
+<body>
+
+    <div class="controles">
+        <div class="cabecera-contenedor">
+            <img src="https://archive.org/download/escudo-servimet/ESCUDO%20SERVIMET.png" class="logo-pagina" alt="Logo Armada">
+            <div class="texto-cabecera">
+                <div class="titulo-web">Centro Meteorológico Marítimo de</div>
+                <div class="titulo-web">Valparaíso</div>
+                <div class="subtitulo-web">Generador de Informes Meteorológicos</div>
+            </div>
+        </div>
+        
+        <input type="text" id="nombreArchivo" placeholder="Nombre del archivo final">
+        
+        <div class="ejemplos-contenedor">
+            <span class="ejemplos-label">Jurisdicción / Áreas de Pronóstico:</span>
+    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE VALPARAÍSO')">VALPARAÍSO</div>
+    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE QUINTERO')">QUINTERO</div>
+    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE SAN ANTONIO')">SAN ANTONIO</div>
+    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE COQUIMBO')">COQUIMBO</div>
+        </div>
+
+        <textarea id="textoInforme" placeholder="Pegue el contenido del informe meteorológico aquí..."></textarea>
+        
+        <div class="contenedor-acciones">
+            <button class="btn-accion btn-principal" onclick="generarVista()">🔍 Vista Previa</button>
+            <button class="btn-accion btn-carta" onclick="generarPDF('letter')">📄 PDF Carta</button>
+            <button class="btn-accion btn-oficio" onclick="generarPDF('legal')">📄 PDF Oficio</button>
+        </div>
+
+        <div class="autor-web">Creado por Cabo 1º (Met.) Francisco Salas Muñoz</div>
+    </div>
+
+    <div id="vistaPrevia"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <script>
+        // Variables Globales para manejo de fechas
+        let mesGlobalIndex = new Date().getMonth();
+        let añoGlobal = new Date().getFullYear();
+        let ultimoDiaProcesado = 0;
+
+        // Función para establecer el nombre del archivo
+        function setNombre(nombre) { 
+            document.getElementById('nombreArchivo').value = nombre; 
+        }
+
+        // Normalización de texto (Quita tildes excepto Ñ)
+        function normalizarTextoBase(texto) {
+            return texto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, function(match) {
+                return match === '\u0303' ? match : ''; 
+            }).normalize("NFC");
+        }
+
+        // Formateo inteligente de fechas
+        function formatearFechaEspecial(linea) {
+            const regex = /(PRONOSTICO VALIDO|VALIDO) DESDE (\d{6}) HASTA (\d{6})/;
+            const match = linea.match(regex);
+            if (match) {
+                const prefijoOriginal = match[1]; 
+                const d1_num = parseInt(match[2].substring(0, 2));
+                const h1 = match[2].substring(2, 4) + ":" + match[2].substring(4, 6);
+                const d2_num = parseInt(match[3].substring(0, 2));
+                const h2 = match[3].substring(2, 4) + ":" + match[3].substring(4, 6);
+                
+                const diasSemana = ["DOMINGO", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
+                const meses = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+
+                if (d1_num < 5 && ultimoDiaProcesado > 25) {
+                    mesGlobalIndex = (mesGlobalIndex + 1) % 12;
+                    if (mesGlobalIndex === 0) añoGlobal++;
+                }
+                ultimoDiaProcesado = d1_num;
+
+                const f1 = new Date(añoGlobal, mesGlobalIndex, d1_num);
+                const diaNombre1 = diasSemana[f1.getDay()];
+                const mesNombre1 = meses[mesGlobalIndex];
+
+                let parteFinal;
+                if (d1_num === d2_num) {
+                    parteFinal = `HASTA ${h2} HRS.`;
+                } else {
+                    let m2Idx = (d2_num < d1_num) ? (mesGlobalIndex + 1) % 12 : mesGlobalIndex;
+                    let a2 = (d2_num < d1_num && mesGlobalIndex === 11) ? añoGlobal + 1 : añoGlobal;
+                    const f2 = new Date(a2, m2Idx, d2_num);
+                    parteFinal = `HASTA ${diasSemana[f2.getDay()]} ${match[3].substring(0, 2)} DE ${meses[m2Idx]} ${h2} HRS.`;
+                }
+
+                return (prefijoOriginal === "PRONOSTICO VALIDO") 
+                    ? `PRONOSTICO VALIDO ${diaNombre1} ${match[2].substring(0, 2)} DE ${mesNombre1} ${h1} ${parteFinal}`
+                    : `VALIDO DESDE ${diaNombre1} ${match[2].substring(0, 2)} DE ${mesNombre1} ${h1} ${parteFinal}`;
+            }
+            return linea;
+        }
+
+        // Generación de la Vista Previa
+        function generarVista() {
+            mesGlobalIndex = new Date().getMonth();
+            añoGlobal = new Date().getFullYear();
+            ultimoDiaProcesado = 0;
+            
+            let texto = document.getElementById("textoInforme").value.trim();
+            if (!texto) return;
+
+            let lineasOriginales = texto.split("\n").map(l => l.trim()).filter(l => l !== "");
+            const urlLogo = "https://archive.org/download/escudo-servimet/ESCUDO%20SERVIMET.png";
+
+            let htmlContent = `
+                <div class="header-container">
+                    <div class="header-text">
+                        <span class="armada-bold">ARMADA DE CHILE</span>
+                        <span class="header-normal">DIREC. GRAL. DEL TERRITORIO MARÍTIMO</span>
+                        <span class="header-normal">Y DE MARINA MERCANTE</span>
+                        <span class="header-normal">GOBERNACIÓN MARÍTIMA DE VALPARAÍSO</span>
+                        <span class="header-normal">CENTRO METEOROLÓGICO MARÍTIMO.</span>
+                    </div>
+                    <div class="logo-anchor"><img src="${urlLogo}" class="logo-estilizado"></div>
+                </div>`;
+
+            lineasOriginales.forEach((linea, index) => {
+                let lineaMayus = linea.toUpperCase();
+                let esValidez = lineaMayus.includes("VALIDO DESDE");
+                
+                linea = esValidez ? formatearFechaEspecial(lineaMayus) : normalizarTextoBase(linea);
+
+                let lineaProcesada = linea.replace(/\(MAL TIEMPO\)/g, "<b>(MAL TIEMPO)</b>")
+                                          .replace(/\(TEMPORAL\)/g, "<b>(TEMPORAL)</b>")
+                                          .replace(/EMITIDO:/g, "<b>EMITIDO:</b>");
+
+                if (index < 2) {
+                    htmlContent += `<div class="titulo-principal">${lineaProcesada}</div>`;
+                    if (index === 1) htmlContent += `<span class="espacio-arriba"></span>`; 
+                }
+                else if (esValidez || /^(SABADO|DOMINGO|LUNES|MARTES|MIERCOLES|JUEVES|VIERNES)\s+\d+/i.test(linea)) {
+                    htmlContent += `<span class="espacio-arriba"></span><div class="negrita">${lineaProcesada}</div>`;
+                }
+                else if (linea.startsWith("SITUACION SINOPTICA:") || linea.startsWith("PRONOSTICO:")) {
+                    htmlContent += `${linea.startsWith("PRONOSTICO:") ? '<span class="espacio-arriba"></span>' : ''}<div class="seccion-titulo">${lineaProcesada}</div>`;
+                }
+                else if (linea.includes("(CH") && linea.includes(":")) {
+                    htmlContent += `<div class="negrita" style="margin-top:5px;">${lineaProcesada}</div>`;
+                }
+                else if (linea.includes("TEMPERATURA MINIMA PROBABLE") || linea.includes("TEMPERATURA MAXIMA PROBABLE") || linea.includes("INDICE DE RADIACION ULTRAVIOLETA")) {
+                    if (linea.includes("TEMPERATURA MINIMA PROBABLE")) { htmlContent += `<span class="espacio-arriba"></span>`; }
+                    let partes = linea.split(':');
+                    htmlContent += `<div class="contenedor-temp"><div>${partes[0].trim()}</div><div>:</div><div>${partes[1] ? partes[1].trim() : ""}</div></div>`;
+                }
+                else if (/^MET\w{5}/.test(linea)) {
+                    htmlContent += `<span class="espacio-arriba"></span><div class="negrita">${lineaProcesada}</div>`;
+                }
+                else { 
+                    htmlContent += `<div class="contenido-texto">${lineaProcesada}</div>`; 
+                }
+            });
+
+            htmlContent += `
+                <div class="footer-informe">
+                    <div class="footer-bold">CENTRO METEOROLÓGICO MARÍTIMO DE VALPARAÍSO</div>
+                    <div class="footer-normal">
+                        <span class="footer-link-azul">http://meteoarmada.directemar.cl // @MetArmada_Valp</span><br>
+                        SUBIDA LEOPOLDO CARVALLO 150, PLAYA ANCHA<br>
+                        TEL: (32) 2208965 - 2208914
+                    </div>
+                </div>`;
+            
+            document.getElementById("vistaPrevia").innerHTML = htmlContent;
+        }
+
+        // Generación de PDF
+        async function generarPDF(formato) {
+            const { jsPDF } = window.jspdf;
+            const element = document.getElementById("vistaPrevia");
+            if (!element.innerHTML) { alert("Primero genere la Vista Previa"); return; }
+
+            let altoMM = (formato === 'legal') ? 355.6 : 279.4;
+            element.style.minHeight = altoMM + "mm";
+
+            let nombrePersonalizado = document.getElementById("nombreArchivo").value.trim() || "Informe_Meteorologico";
+
+            const canvas = await html2canvas(element, { scale: 2, useCORS: true });
+            const imgData = canvas.toDataURL("image/jpeg", 0.8);
+            const pdf = new jsPDF("p", "mm", formato);
+            
+            pdf.addImage(imgData, "JPEG", 0, 0, 215.9, altoMM);
+            pdf.save(nombrePersonalizado + ".pdf"); 
+        }
+    </script>
+</body>
+</html>
