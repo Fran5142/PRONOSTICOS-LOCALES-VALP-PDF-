@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Generador de Informes - SERVIMET Puerto Montt</title>
+    <title>Generador de Informes - SERVIMET Valparaíso</title>
     
     <style>
         /* =========================================
@@ -45,7 +45,7 @@
             position: absolute; 
             left: 100px;          
             top: 40px;           
-            height: 350px;       
+            height: 250px;       
             width: auto;
             filter: drop-shadow(0 0 15px rgba(76, 201, 240, 0.4));
         }
@@ -70,7 +70,6 @@
             font-weight: 400;
         }
 
-        /* Formulario y Botones */
         #nombreArchivo {
             padding: 12px 20px;
             width: 100%;
@@ -216,10 +215,10 @@
         
         <div class="ejemplos-contenedor">
             <span class="ejemplos-label">Jurisdicción / Áreas de Pronóstico:</span>
-    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE VALPARAÍSO')">VALPARAÍSO</div>
-    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE QUINTERO')">QUINTERO</div>
-    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE SAN ANTONIO')">SAN ANTONIO</div>
-    <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE COQUIMBO')">COQUIMBO</div>
+            <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE VALPARAÍSO')">VALPARAÍSO</div>
+            <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE QUINTERO')">QUINTERO</div>
+            <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE SAN ANTONIO')">SAN ANTONIO</div>
+            <div class="boton-ejemplo" onclick="setNombre('INFORME BAHÍA DE COQUIMBO')">COQUIMBO</div>
         </div>
 
         <textarea id="textoInforme" placeholder="Pegue el contenido del informe meteorológico aquí..."></textarea>
@@ -239,32 +238,32 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
     <script>
-        // Variables Globales para manejo de fechas
         let mesGlobalIndex = new Date().getMonth();
         let añoGlobal = new Date().getFullYear();
         let ultimoDiaProcesado = 0;
 
-        // Función para establecer el nombre del archivo
         function setNombre(nombre) { 
             document.getElementById('nombreArchivo').value = nombre; 
         }
 
-        // Normalización de texto (Quita tildes excepto Ñ)
         function normalizarTextoBase(texto) {
             return texto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, function(match) {
                 return match === '\u0303' ? match : ''; 
             }).normalize("NFC");
         }
 
-        // Formateo inteligente de fechas
         function formatearFechaEspecial(linea) {
             const regex = /(PRONOSTICO VALIDO|VALIDO) DESDE (\d{6}) HASTA (\d{6})/;
             const match = linea.match(regex);
+            
             if (match) {
-                const prefijoOriginal = match[1]; 
-                const d1_num = parseInt(match[2].substring(0, 2));
+                const tipoPrefijo = match[1];
+                const d1_str = match[2].substring(0, 2);
+                const d1_num = parseInt(d1_str);
                 const h1 = match[2].substring(2, 4) + ":" + match[2].substring(4, 6);
-                const d2_num = parseInt(match[3].substring(0, 2));
+                
+                const d2_str = match[3].substring(0, 2);
+                const d2_num = parseInt(d2_str);
                 const h2 = match[3].substring(2, 4) + ":" + match[3].substring(4, 6);
                 
                 const diasSemana = ["DOMINGO", "LUNES", "MARTES", "MIERCOLES", "JUEVES", "VIERNES", "SABADO"];
@@ -280,24 +279,23 @@
                 const diaNombre1 = diasSemana[f1.getDay()];
                 const mesNombre1 = meses[mesGlobalIndex];
 
-                let parteFinal;
+                let prefijoFinal = (tipoPrefijo === "VALIDO") ? "VALIDO:" : "PRONOSTICO VALIDO";
+
                 if (d1_num === d2_num) {
-                    parteFinal = `HASTA ${h2} HRS.`;
+                    return `${prefijoFinal} ${diaNombre1} ${d1_str} DE ${mesNombre1} ENTRE LAS ${h1} Y ${h2} HRS.`;
                 } else {
                     let m2Idx = (d2_num < d1_num) ? (mesGlobalIndex + 1) % 12 : mesGlobalIndex;
                     let a2 = (d2_num < d1_num && mesGlobalIndex === 11) ? añoGlobal + 1 : añoGlobal;
                     const f2 = new Date(a2, m2Idx, d2_num);
-                    parteFinal = `HASTA ${diasSemana[f2.getDay()]} ${match[3].substring(0, 2)} DE ${meses[m2Idx]} ${h2} HRS.`;
+                    const diaNombre2 = diasSemana[f2.getDay()];
+                    const mesNombre2 = meses[m2Idx];
+                    
+                    return `${prefijoFinal} ${diaNombre1} ${d1_str} DE ${mesNombre1} ${h1} HASTA ${diaNombre2} ${d2_str} DE ${mesNombre2} ${h2} HRS.`;
                 }
-
-                return (prefijoOriginal === "PRONOSTICO VALIDO") 
-                    ? `PRONOSTICO VALIDO ${diaNombre1} ${match[2].substring(0, 2)} DE ${mesNombre1} ${h1} ${parteFinal}`
-                    : `VALIDO DESDE ${diaNombre1} ${match[2].substring(0, 2)} DE ${mesNombre1} ${h1} ${parteFinal}`;
             }
             return linea;
         }
 
-        // Generación de la Vista Previa
         function generarVista() {
             mesGlobalIndex = new Date().getMonth();
             añoGlobal = new Date().getFullYear();
@@ -370,7 +368,6 @@
             document.getElementById("vistaPrevia").innerHTML = htmlContent;
         }
 
-        // Generación de PDF
         async function generarPDF(formato) {
             const { jsPDF } = window.jspdf;
             const element = document.getElementById("vistaPrevia");
@@ -378,7 +375,6 @@
 
             let altoMM = (formato === 'legal') ? 355.6 : 279.4;
             element.style.minHeight = altoMM + "mm";
-
             let nombrePersonalizado = document.getElementById("nombreArchivo").value.trim() || "Informe_Meteorologico";
 
             const canvas = await html2canvas(element, { scale: 2, useCORS: true });
